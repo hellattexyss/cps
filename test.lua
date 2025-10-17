@@ -1,4 +1,4 @@
--- CPS Network Combat GUI - FULL FINAL ALL-IN-ONE
+-- CPS Combat GUI - OG PLUS ReadMe (NEVER BLANK), MOBILE CAMLOCK GUI ALWAYS SHOWS
 local Windui = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
 local Players, RunService, UserInputService = game:GetService("Players"), game:GetService("RunService"), game:GetService("UserInputService")
 local LocalPlayer, Camera = Players.LocalPlayer, workspace.CurrentCamera
@@ -56,7 +56,7 @@ function getPlayerInView()
 	return closest
 end
 
--- PC Camlock
+-- PC Camlock + rest unchanged...
 local camlockEnabledPC, camlockKey = false, Enum.KeyCode.C
 local camlockTargetPC, camlockHighlightPC, camlockBillboardPC
 
@@ -131,16 +131,17 @@ end)
 Players.PlayerRemoving:Connect(function(plr)
 	if camlockTargetPC and plr==camlockTargetPC then clearCamlockPC() end
 end)
-
+-- END PART 1 -- Next Msg: Mobile Camlock GUI, always shown/works!
 -------------------------
--- MOBILE CAMLOCK GUI, ALWAYS SPAWNS!
+-- MOBILE CAMLOCK GUI, ALWAYS PRESENT, UPDATED
 -------------------------
-local camlockGui = PlayerGui:FindFirstChild("CPSMobileCamlockGui") or Instance.new("ScreenGui", PlayerGui)
+local camlockGui = PlayerGui:FindFirstChild("CPSMobileCamlockGui") or Instance.new("ScreenGui")
 camlockGui.Name = "CPSMobileCamlockGui"
+camlockGui.Parent = PlayerGui
 camlockGui.ResetOnSpawn = false
 camlockGui.Enabled = true
 
-camlockFrame = Instance.new("Frame", camlockGui)
+local camlockFrame = Instance.new("Frame", camlockGui)
 camlockFrame.Size = UDim2.new(0,170,0,70)
 camlockFrame.Position = UDim2.new(0.5,-85,0.95,-80)
 camlockFrame.AnchorPoint = Vector2.new(0.5,1)
@@ -151,7 +152,7 @@ Instance.new("UICorner",camlockFrame).CornerRadius=UDim.new(0,14)
 local UIGradient = Instance.new("UIGradient",camlockFrame)
 UIGradient.Color=ColorSequence.new(Color3.new(1,0,0),Color3.new(.5,0,0)); UIGradient.Rotation=45
 
-camlockText = Instance.new("TextLabel", camlockFrame)
+local camlockText = Instance.new("TextLabel", camlockFrame)
 camlockText.Size = UDim2.new(1,-10,.4,-10)
 camlockText.Position = UDim2.new(0,5,0,4)
 camlockText.BackgroundTransparency = 1
@@ -160,7 +161,7 @@ camlockText.TextColor3 = Color3.new(1,0,0)
 camlockText.Font = Enum.Font.SourceSansBold
 camlockText.TextScaled = true
 
-fightingText = Instance.new("TextLabel", camlockFrame)
+local fightingText = Instance.new("TextLabel", camlockFrame)
 fightingText.Size = UDim2.new(1,-10,.4,-10)
 fightingText.Position = UDim2.new(0,5,0,30)
 fightingText.BackgroundTransparency = 1
@@ -169,7 +170,7 @@ fightingText.TextColor3 = Color3.new(1,0,0)
 fightingText.Font = Enum.Font.SourceSansItalic
 fightingText.TextScaled = true
 
-keybindText = Instance.new("TextLabel", camlockFrame)
+local keybindText = Instance.new("TextLabel", camlockFrame)
 keybindText.Size = UDim2.new(1,-10,.2,-5)
 keybindText.Position = UDim2.new(0,5,0,56)
 keybindText.BackgroundTransparency = 1
@@ -257,7 +258,7 @@ Players.PlayerRemoving:Connect(function(plr)
 	if camlockTargetMobile and plr.Character==camlockTargetMobile then clearCamlockMobile() end
 end)
 
--- [PASTE all your unchanged OG auto-combat/counter code below here!]
+-- [Rest: OG block/counter/combat logic unchanged, paste here]
 
 Window:SelectTab(1)
-Windui:Notify{ Title="CPS Network", Content="ALL features, Discord tab, always visible. Enjoy!", Duration=6, Icon="check"}
+Windui:Notify{ Title="CPS Network", Content="ALL features, Discord tab, mobile camlock always loads.", Duration=6, Icon="check"}
