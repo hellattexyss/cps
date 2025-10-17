@@ -1,4 +1,3 @@
--- CPS Combat GUI - OG PLUS ReadMe (NEVER BLANK), MOBILE CAMLOCK GUI ALWAYS SHOWS
 local Windui = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
 local Players, RunService, UserInputService = game:GetService("Players"), game:GetService("RunService"), game:GetService("UserInputService")
 local LocalPlayer, Camera = Players.LocalPlayer, workspace.CurrentCamera
@@ -24,6 +23,7 @@ ReadMeTab:Button{
 	end
 }
 
+-- OG combat logic
 local m1AfterEnabled, m1CatchEnabled = false, false
 local normalRange, specialRange, skillRange, skillDelay = 30, 50, 50, 1.2
 local detectActive, counterActive, counterRange = true, true, 8
@@ -56,10 +56,9 @@ function getPlayerInView()
 	return closest
 end
 
--- PC Camlock + rest unchanged...
+-- PC camlock logic (unchanged)
 local camlockEnabledPC, camlockKey = false, Enum.KeyCode.C
 local camlockTargetPC, camlockHighlightPC, camlockBillboardPC
-
 DetectTab:Toggle{
 	Title = "Camlock (PC)",
 	Value = false,
@@ -131,9 +130,9 @@ end)
 Players.PlayerRemoving:Connect(function(plr)
 	if camlockTargetPC and plr==camlockTargetPC then clearCamlockPC() end
 end)
--- END PART 1 -- Next Msg: Mobile Camlock GUI, always shown/works!
+-- Paste PART 2 next (mobile camlock GUI loader)
 -------------------------
--- MOBILE CAMLOCK GUI, ALWAYS PRESENT, UPDATED
+-- MOBILE CAMLOCK GUI, ALWAYS SPAWNS, PATCHED
 -------------------------
 local camlockGui = PlayerGui:FindFirstChild("CPSMobileCamlockGui") or Instance.new("ScreenGui")
 camlockGui.Name = "CPSMobileCamlockGui"
@@ -258,7 +257,7 @@ Players.PlayerRemoving:Connect(function(plr)
 	if camlockTargetMobile and plr.Character==camlockTargetMobile then clearCamlockMobile() end
 end)
 
--- [Rest: OG block/counter/combat logic unchanged, paste here]
+-- [Paste your working original combat/counter heartbeat etc logic unchanged here]
 
 Window:SelectTab(1)
-Windui:Notify{ Title="CPS Network", Content="ALL features, Discord tab, mobile camlock always loads.", Duration=6, Icon="check"}
+Windui:Notify{ Title="CPS Network", Content="All tabs, Discord info, and camlock GUI now always present and working.", Duration=6, Icon="check"}
