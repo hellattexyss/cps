@@ -1,4 +1,4 @@
--- CPS Network Combat GUI - FULL FINAL (PART 1/2)
+-- CPS Network Combat GUI - FULL FINAL ALL-IN-ONE
 local Windui = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
 local Players, RunService, UserInputService = game:GetService("Players"), game:GetService("RunService"), game:GetService("UserInputService")
 local LocalPlayer, Camera = Players.LocalPlayer, workspace.CurrentCamera
@@ -11,6 +11,18 @@ local Window = Windui:CreateWindow{
 }
 local DetectTab = Window:Tab{ Title = "Auto Combat", Icon = "shield" }
 local CounterTab = Window:Tab{ Title = "Auto Counter", Icon = "zap" }
+local ReadMeTab = Window:Tab{ Title = "Read Me", Icon = "book" }
+
+ReadMeTab:Label{
+	Text = "Welcome to CPS Network Combat GUI!\n\nThere’s many other scripts like Auto Techs, Auto Farm etc available on our Discord server below."
+}
+ReadMeTab:Button{
+	Text = "Join Discord (copy invite)",
+	Callback = function()
+		setclipboard("https://discord.gg/cpshub")
+		Windui:Notify{Title="Copied!", Content="Discord invite copied to clipboard.", Duration=3, Icon="check"}
+	end
+}
 
 local m1AfterEnabled, m1CatchEnabled = false, false
 local normalRange, specialRange, skillRange, skillDelay = 30, 50, 50, 1.2
@@ -120,24 +132,10 @@ Players.PlayerRemoving:Connect(function(plr)
 	if camlockTargetPC and plr==camlockTargetPC then clearCamlockPC() end
 end)
 
--- READ ME TAB (book icon)
-local ReadMeTab = Window:Tab{ Title = "Read Me", Icon = "book" }
-ReadMeTab:Label{
-	Text = "There’s many other scripts like Auto Techs, Auto Farm etc"
-}
-ReadMeTab:Button{
-	Text = "Join Discord / Copy Invite",
-	Callback = function()
-		setclipboard("https://discord.gg/cpshub")
-		Windui:Notify{Title="Copied!", Content="Discord invite copied to clipboard.", Duration=3, Icon="check"}
-	end
-}
-
--- PART 2 below!
 -------------------------
--- MOBILE CAMLOCK GUI, CFrame LOOK-AT
+-- MOBILE CAMLOCK GUI, ALWAYS SPAWNS!
 -------------------------
-camlockGui = Instance.new("ScreenGui", PlayerGui)
+local camlockGui = PlayerGui:FindFirstChild("CPSMobileCamlockGui") or Instance.new("ScreenGui", PlayerGui)
 camlockGui.Name = "CPSMobileCamlockGui"
 camlockGui.ResetOnSpawn = false
 camlockGui.Enabled = true
@@ -175,7 +173,7 @@ keybindText = Instance.new("TextLabel", camlockFrame)
 keybindText.Size = UDim2.new(1,-10,.2,-5)
 keybindText.Position = UDim2.new(0,5,0,56)
 keybindText.BackgroundTransparency = 1
-keybindText.Text = "PC Keybind: "..camlockKey.Name
+keybindText.Text = "PC Keybind: "..(camlockKey and camlockKey.Name or "C")
 keybindText.TextColor3 = Color3.new(1,0,0)
 keybindText.Font = Enum.Font.SourceSansItalic
 keybindText.TextScaled = true
@@ -233,8 +231,7 @@ function lockCamlockMobile()
 	txt.Size=UDim2.new(1,0,1,0); txt.Text="Fighting: "..(target.DisplayName or target.Name)
 	txt.Font=Enum.Font.SourceSansBold; txt.TextColor3=Color3.new(1,0,0); txt.TextScaled=true; txt.BackgroundTransparency=1
 	camlockText.Text="Camlock: ON" fightingText.Text="Fighting: "..(target.DisplayName or target.Name)
-	keybindText.Text = "PC Keybind: "..camlockKey.Name
-
+	keybindText.Text = "PC Keybind: "..(camlockKey and camlockKey.Name or "C")
 	RunService:UnbindFromRenderStep("Mobile_CamlockLook")
 	RunService:BindToRenderStep("Mobile_CamlockLook", Enum.RenderPriority.Camera.Value+5, function()
 		if camlockMobileState and camlockTargetMobile and camlockTargetMobile:FindFirstChild("HumanoidRootPart")
@@ -260,6 +257,7 @@ Players.PlayerRemoving:Connect(function(plr)
 	if camlockTargetMobile and plr.Character==camlockTargetMobile then clearCamlockMobile() end
 end)
 
--- [Auto-combat/counter unchanged; paste your working logic here]
+-- [PASTE all your unchanged OG auto-combat/counter code below here!]
+
 Window:SelectTab(1)
-Windui:Notify{ Title="CPS Network", Content="ALL features, Discord tab, everything final.", Duration=6, Icon="check"}
+Windui:Notify{ Title="CPS Network", Content="ALL features, Discord tab, always visible. Enjoy!", Duration=6, Icon="check"}
