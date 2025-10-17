@@ -1,4 +1,4 @@
--- CPS Network Combat GUI FULL FINAL (PT 1: WINUI/PC TOGGLES/LOCK)
+-- CPS Network Combat GUI - TRUE PLAYER LOCK PART 1
 local Windui = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
 local Players, RunService, UserInputService = game:GetService("Players"), game:GetService("RunService"), game:GetService("UserInputService")
 local LocalPlayer, Camera = Players.LocalPlayer, workspace.CurrentCamera
@@ -16,8 +16,7 @@ local m1AfterEnabled, m1CatchEnabled = false, false
 local normalRange, specialRange, skillRange, skillDelay = 30, 50, 50, 1.2
 local lastCatch = 0
 
--- ALWAYS ON AT START!
-local detectActive, counterActive = true, true
+local detectActive, counterActive = true, true -- Always on at start
 
 DetectTab:Toggle{
 	Title = "Auto Block", Desc = "Enable/disable auto-block.", Value = true,
@@ -36,27 +35,24 @@ DetectTab:Slider{Title="Special Range", Value={Min=10,Max=100,Default=50}, Callb
 DetectTab:Slider{Title="Skill Range", Value={Min=10,Max=100,Default=50}, Callback=function(v) skillRange = v end}
 DetectTab:Slider{Title="Skill Delay", Step=0.1, Value={Min=0.1,Max=5,Default=1.2}, Callback=function(v) skillDelay = v end}
 
-------------------------
--- Full Counter Tab   --
-------------------------
 CounterTab:Toggle{
 	Title = "Auto Counter", Desc="Enable smart auto counter.", Value=true,
 	Callback = function(v) counterActive = v end
 }
 CounterTab:Slider{
 	Title = "Counter Range", Value={Min=5,Max=25,Default=8},
-	Callback=function(v) counterRange = v end -- Default remains 8!
+	Callback=function(v) counterRange = v end
 }
 
 ------------------------
--- PC Camlock -------
+-- PC Camlock (SAFE FOCUS)
 ------------------------
 local camlockEnabledPC, camlockKey = false, Enum.KeyCode.C
 local camlockTargetPC, camlockHighlightPC, camlockBillboardPC
 
 DetectTab:Toggle{
 	Title = "Camlock (PC)",
-	Desc = "PC: Lock on target in view. Toggle off/on to re-lock.",
+	Desc = "PC: Lock ONLY to valid, ALIVE player! Toggle off/on to re-lock.",
 	Value = false,
 	Callback = function(state)
 		camlockEnabledPC = state
@@ -85,11 +81,14 @@ DetectTab:Keybind{
 function getPlayerInView()
 	local closest, minangle = nil, math.huge
 	for _,plr in pairs(Players:GetPlayers()) do
-		if plr~=LocalPlayer and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
-			local hrp=plr.Character.HumanoidRootPart
-			local dir=(hrp.Position-Camera.CFrame.Position).Unit
-			local angle=math.acos(dir:Dot(Camera.CFrame.LookVector))
-			if angle<math.rad(20) and angle<minangle then closest=plr minangle=angle end
+		if plr~=LocalPlayer and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") and plr.Character:FindFirstChildOfClass("Humanoid") then
+			local hum = plr.Character:FindFirstChildOfClass("Humanoid")
+			if hum.Health > 0 then
+				local hrp=plr.Character.HumanoidRootPart
+				local dir=(hrp.Position-Camera.CFrame.Position).Unit
+				local angle=math.acos(dir:Dot(Camera.CFrame.LookVector))
+				if angle<math.rad(20) and angle<minangle then closest=plr minangle=angle end
+			end
 		end
 	end
 	return closest
@@ -99,7 +98,9 @@ function lockCamlockPC()
 	clearCamlockPC()
 	if not camlockEnabledPC or not camlockTargetPC or not camlockTargetPC.Character then return end
 	local char=camlockTargetPC.Character
-	local hrp=char:FindFirstChild("HumanoidRootPart") if not hrp then return end
+	local hum=char:FindFirstChildOfClass("Humanoid")
+	local hrp=char:FindFirstChild("HumanoidRootPart")
+	if not (hum and hrp and hum.Health > 0) then clearCamlockPC() return end
 	camlockHighlightPC=Instance.new("Highlight",char)
 	camlockHighlightPC.Adornee=char; camlockHighlightPC.FillColor=Color3.new(1,0,0); camlockHighlightPC.FillTransparency=.5; camlockHighlightPC.OutlineTransparency=1
 	camlockBillboardPC=Instance.new("BillboardGui",char)
@@ -108,12 +109,10 @@ function lockCamlockPC()
 	local txt=Instance.new("TextLabel",camlockBillboardPC)
 	txt.Size=UDim2.new(1,0,1,0); txt.Text="Fighting: "..(camlockTargetPC.DisplayName or camlockTargetPC.Name)
 	txt.Font=Enum.Font.SourceSansBold; txt.TextColor3=Color3.new(1,0,0); txt.TextScaled=true; txt.BackgroundTransparency=1
-	-- REAL ROBLOX LOCK: Focus camera on Humanoid
 	Camera.CameraType = Enum.CameraType.Attach
-	if char:FindFirstChildOfClass("Humanoid") then
-		Camera.CameraSubject = char:FindFirstChildOfClass("Humanoid")
-	end
+	Camera.CameraSubject = hum
 end
+
 function clearCamlockPC()
 	Camera.CameraType = Enum.CameraType.Custom
 	Camera.CameraSubject = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") or workspace
@@ -134,12 +133,13 @@ UserInputService.InputBegan:Connect(function(input, gp)
 	end
 end)
 Players.PlayerRemoving:Connect(function(plr)
-	if camlockTargetPC and plr.Character==camlockTargetPC.Character then clearCamlockPC() end
+	if camlockTargetPC and plr==camlockTargetPC then clearCamlockPC() end
 end)
 
 -- ======== PT 2: MOBILE/COUNTER ETC ======== --
+--(CONTINUED BELOW, copy this then part 2 next)
 -------------------------
--- MOBILE CAMLOCK GUI W/ REAL CAMERA LOCK-ON --
+-- MOBILE CAMLOCK GUI W/ TRUE SAFE FOCUS --
 -------------------------
 camlockGui = Instance.new("ScreenGui", PlayerGui)
 camlockGui.Name = "CPSMobileCamlockGui"
@@ -214,9 +214,13 @@ function lockCamlockMobile()
 	clearCamlockMobile()
 	local target = getPlayerInView()
 	if not camlockMobileState then camlockText.Text="Camlock: OFF" fightingText.Text="" Camera.CameraType = Enum.CameraType.Custom return end
-	if not target or not target.Character then camlockText.Text="Camlock: ON" fightingText.Text="No target" Camera.CameraType = Enum.CameraType.Custom return end
+	if not target or not target.Character or not target.Character:FindFirstChild("HumanoidRootPart") or not target.Character:FindFirstChildOfClass("Humanoid") or target.Character:FindFirstChildOfClass("Humanoid").Health <= 0 then
+		camlockText.Text="Camlock: ON" fightingText.Text="No valid target" Camera.CameraType = Enum.CameraType.Custom return
+	end
 	camlockTargetMobile = target.Character
-	local hrp = camlockTargetMobile:FindFirstChild("HumanoidRootPart") if not hrp then return end
+	local hum = camlockTargetMobile:FindFirstChildOfClass("Humanoid")
+	local hrp = camlockTargetMobile:FindFirstChild("HumanoidRootPart")
+	if not (hum and hrp and hum.Health > 0) then camlockText.Text="Camlock: ON" fightingText.Text="No valid target" Camera.CameraType = Enum.CameraType.Custom return end
 	camlockHighlightMobile = Instance.new("Highlight", camlockTargetMobile)
 	camlockHighlightMobile.Adornee = camlockTargetMobile
 	camlockHighlightMobile.FillColor=Color3.new(1,0,0)
@@ -230,11 +234,8 @@ function lockCamlockMobile()
 	txt.Font=Enum.Font.SourceSansBold; txt.TextColor3=Color3.new(1,0,0); txt.TextScaled=true; txt.BackgroundTransparency=1
 	camlockText.Text="Camlock: ON" fightingText.Text="Fighting: "..(target.DisplayName or target.Name)
 	keybindText.Text = "PC Keybind: "..camlockKey.Name
-	-- REAL LOCK ON MOBILE: FOCUS CAMERA ON Humanoid
 	Camera.CameraType = Enum.CameraType.Attach
-	if camlockTargetMobile:FindFirstChildOfClass("Humanoid") then
-		Camera.CameraSubject = camlockTargetMobile:FindFirstChildOfClass("Humanoid")
-	end
+	Camera.CameraSubject = hum
 end
 function clearCamlockMobile()
 	Camera.CameraType = Enum.CameraType.Custom
@@ -247,16 +248,16 @@ function clearCamlockMobile()
 end
 
 Players.PlayerRemoving:Connect(function(plr)
-	if camlockTargetPC and plr.Character==camlockTargetPC.Character then clearCamlockPC() end
+	if camlockTargetPC and plr==camlockTargetPC then clearCamlockPC() end
 	if camlockTargetMobile and plr.Character==camlockTargetMobile then clearCamlockMobile() end
 end)
 
 ----------------------
 -- COMBAT + COUNTER --
 ----------------------
--- (You can keep your combat/counter code here as before, to fit the script.)
+-- [Insert your unchanged combat/counter/auto features below as before.]
 
 Window:SelectTab(1)
-Windui:Notify{ Title="CPS Network", Content="All features loaded. Camlock/counter/camera lock now work 100%.", Duration=6, Icon="check"}
+Windui:Notify{ Title="CPS Network", Content="ALL features loaded + camlock only live players!", Duration=6, Icon="check"}
 
--- END OF PART 2
+-- END OF PART 2 (Final!)
