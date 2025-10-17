@@ -1,4 +1,4 @@
--- CPS Network Combat GUI - TRUE PLAYER LOCK PART 1
+-- CPS Network Combat GUI - FINAL TRUE CAMLOCK AIM (PT 1)
 local Windui = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
 local Players, RunService, UserInputService = game:GetService("Players"), game:GetService("RunService"), game:GetService("UserInputService")
 local LocalPlayer, Camera = Players.LocalPlayer, workspace.CurrentCamera
@@ -45,14 +45,14 @@ CounterTab:Slider{
 }
 
 ------------------------
--- PC Camlock (SAFE FOCUS)
+-- PC Camlock (TRUE CAMLOCK/FREE-CAMERA)
 ------------------------
 local camlockEnabledPC, camlockKey = false, Enum.KeyCode.C
 local camlockTargetPC, camlockHighlightPC, camlockBillboardPC
 
 DetectTab:Toggle{
 	Title = "Camlock (PC)",
-	Desc = "PC: Lock ONLY to valid, ALIVE player! Toggle off/on to re-lock.",
+	Desc = "PC: Hard aim at player in front (real camlock but can pan when off).",
 	Value = false,
 	Callback = function(state)
 		camlockEnabledPC = state
@@ -80,14 +80,16 @@ DetectTab:Keybind{
 
 function getPlayerInView()
 	local closest, minangle = nil, math.huge
-	for _,plr in pairs(Players:GetPlayers()) do
-		if plr~=LocalPlayer and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") and plr.Character:FindFirstChildOfClass("Humanoid") then
+	for _,plr in ipairs(Players:GetPlayers()) do
+		if plr ~= LocalPlayer and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") and plr.Character:FindFirstChildOfClass("Humanoid") then
 			local hum = plr.Character:FindFirstChildOfClass("Humanoid")
-			if hum.Health > 0 then
-				local hrp=plr.Character.HumanoidRootPart
-				local dir=(hrp.Position-Camera.CFrame.Position).Unit
-				local angle=math.acos(dir:Dot(Camera.CFrame.LookVector))
-				if angle<math.rad(20) and angle<minangle then closest=plr minangle=angle end
+			if hum.Health > 0 and not hum:GetStateEnabled(Enum.HumanoidStateType.Dead) then
+				local hrp = plr.Character.HumanoidRootPart
+				local dir = (hrp.Position - Camera.CFrame.Position).Unit
+				local angle = math.acos(dir:Dot(Camera.CFrame.LookVector))
+				if angle < math.rad(30) and angle < minangle then
+					closest, minangle = plr, angle
+				end
 			end
 		end
 	end
@@ -109,13 +111,24 @@ function lockCamlockPC()
 	local txt=Instance.new("TextLabel",camlockBillboardPC)
 	txt.Size=UDim2.new(1,0,1,0); txt.Text="Fighting: "..(camlockTargetPC.DisplayName or camlockTargetPC.Name)
 	txt.Font=Enum.Font.SourceSansBold; txt.TextColor3=Color3.new(1,0,0); txt.TextScaled=true; txt.BackgroundTransparency=1
-	Camera.CameraType = Enum.CameraType.Attach
-	Camera.CameraSubject = hum
+	
+	-- REAL CAMERA LOCK: Use RenderStepped but never override CameraType/CameraSubject
+	RunService:UnbindFromRenderStep("PC_CamlockLook")
+	RunService:BindToRenderStep("PC_CamlockLook", Enum.RenderPriority.Camera.Value+3, function()
+		if camlockEnabledPC and camlockTargetPC and camlockTargetPC.Character and camlockTargetPC.Character:FindFirstChild("HumanoidRootPart") then
+			local root = camlockTargetPC.Character.HumanoidRootPart
+			local myPos = Camera.CFrame.Position
+			if (root.Position-myPos).magnitude < 1600 then
+				Camera.CFrame = CFrame.new(myPos, root.Position)
+			end
+		else
+			RunService:UnbindFromRenderStep("PC_CamlockLook")
+		end
+	end)
 end
 
 function clearCamlockPC()
-	Camera.CameraType = Enum.CameraType.Custom
-	Camera.CameraSubject = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") or workspace
+	RunService:UnbindFromRenderStep("PC_CamlockLook")
 	if camlockBillboardPC then camlockBillboardPC:Destroy() camlockBillboardPC=nil end
 	if camlockHighlightPC then camlockHighlightPC:Destroy() camlockHighlightPC=nil end
 end
@@ -136,10 +149,10 @@ Players.PlayerRemoving:Connect(function(plr)
 	if camlockTargetPC and plr==camlockTargetPC then clearCamlockPC() end
 end)
 
--- ======== PT 2: MOBILE/COUNTER ETC ======== --
+-- ======== PT 2: MOBILE/COUNTER ETC ========
 --(CONTINUED BELOW, copy this then part 2 next)
 -------------------------
--- MOBILE CAMLOCK GUI W/ TRUE SAFE FOCUS --
+-- MOBILE CAMLOCK GUI, REAL CAM LOOK --
 -------------------------
 camlockGui = Instance.new("ScreenGui", PlayerGui)
 camlockGui.Name = "CPSMobileCamlockGui"
@@ -213,14 +226,20 @@ end)
 function lockCamlockMobile()
 	clearCamlockMobile()
 	local target = getPlayerInView()
-	if not camlockMobileState then camlockText.Text="Camlock: OFF" fightingText.Text="" Camera.CameraType = Enum.CameraType.Custom return end
+	if not camlockMobileState then camlockText.Text="Camlock: OFF" fightingText.Text=""
+		RunService:UnbindFromRenderStep("Mobile_CamlockLook") return
+	end
 	if not target or not target.Character or not target.Character:FindFirstChild("HumanoidRootPart") or not target.Character:FindFirstChildOfClass("Humanoid") or target.Character:FindFirstChildOfClass("Humanoid").Health <= 0 then
-		camlockText.Text="Camlock: ON" fightingText.Text="No valid target" Camera.CameraType = Enum.CameraType.Custom return
+		camlockText.Text="Camlock: ON" fightingText.Text="No valid target"
+		RunService:UnbindFromRenderStep("Mobile_CamlockLook")
+		return
 	end
 	camlockTargetMobile = target.Character
 	local hum = camlockTargetMobile:FindFirstChildOfClass("Humanoid")
 	local hrp = camlockTargetMobile:FindFirstChild("HumanoidRootPart")
-	if not (hum and hrp and hum.Health > 0) then camlockText.Text="Camlock: ON" fightingText.Text="No valid target" Camera.CameraType = Enum.CameraType.Custom return end
+	if not (hum and hrp and hum.Health > 0) then camlockText.Text="Camlock: ON" fightingText.Text="No valid target"
+		RunService:UnbindFromRenderStep("Mobile_CamlockLook") return end
+
 	camlockHighlightMobile = Instance.new("Highlight", camlockTargetMobile)
 	camlockHighlightMobile.Adornee = camlockTargetMobile
 	camlockHighlightMobile.FillColor=Color3.new(1,0,0)
@@ -234,12 +253,23 @@ function lockCamlockMobile()
 	txt.Font=Enum.Font.SourceSansBold; txt.TextColor3=Color3.new(1,0,0); txt.TextScaled=true; txt.BackgroundTransparency=1
 	camlockText.Text="Camlock: ON" fightingText.Text="Fighting: "..(target.DisplayName or target.Name)
 	keybindText.Text = "PC Keybind: "..camlockKey.Name
-	Camera.CameraType = Enum.CameraType.Attach
-	Camera.CameraSubject = hum
+
+	-- Real camlock: pan but no CameraType changes!
+	RunService:UnbindFromRenderStep("Mobile_CamlockLook")
+	RunService:BindToRenderStep("Mobile_CamlockLook", Enum.RenderPriority.Camera.Value+3, function()
+		if camlockMobileState and camlockTargetMobile and camlockTargetMobile:FindFirstChild("HumanoidRootPart") then
+			local root = camlockTargetMobile:FindFirstChild("HumanoidRootPart")
+			local myPos = Camera.CFrame.Position
+			if (root.Position-myPos).magnitude < 1600 then
+				Camera.CFrame = CFrame.new(myPos, root.Position)
+			end
+		else
+			RunService:UnbindFromRenderStep("Mobile_CamlockLook")
+		end
+	end)
 end
 function clearCamlockMobile()
-	Camera.CameraType = Enum.CameraType.Custom
-	Camera.CameraSubject = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") or workspace
+	RunService:UnbindFromRenderStep("Mobile_CamlockLook")
 	if camlockBillboardMobile then camlockBillboardMobile:Destroy() camlockBillboardMobile=nil end
 	if camlockHighlightMobile then camlockHighlightMobile:Destroy() camlockHighlightMobile=nil end
 	camlockTargetMobile=nil
@@ -253,11 +283,8 @@ Players.PlayerRemoving:Connect(function(plr)
 end)
 
 ----------------------
--- COMBAT + COUNTER --
+-- [Auto combat/counter unchanged, keep previous logic!]
 ----------------------
--- [Insert your unchanged combat/counter/auto features below as before.]
 
 Window:SelectTab(1)
-Windui:Notify{ Title="CPS Network", Content="ALL features loaded + camlock only live players!", Duration=6, Icon="check"}
-
--- END OF PART 2 (Final!)
+Windui:Notify{ Title="CPS Network", Content="All features loaded and camera AIM now safe smooth.", Duration=6, Icon="check"}
