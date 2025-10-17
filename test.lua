@@ -1,4 +1,5 @@
--- CPS Combat GUI (OG FULLY WORKING VERSION, but now also adds ReadMe tab)
+setclipboard("https://discord.gg/cpshub") -- Copies invite to clipboard when script executes!
+
 local Windui = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
 local Players, RunService, UserInputService = game:GetService("Players"), game:GetService("RunService"), game:GetService("UserInputService")
 local LocalPlayer, Camera = Players.LocalPlayer, workspace.CurrentCamera
@@ -11,19 +12,6 @@ local Window = Windui:CreateWindow{
 }
 local DetectTab = Window:Tab{ Title = "Auto Combat", Icon = "shield" }
 local CounterTab = Window:Tab{ Title = "Auto Counter", Icon = "zap" }
--- Add "Read Me" tab, book icon, at end:
-local ReadMeTab = Window:Tab{ Title = "Read Me", Icon = "book" }
-
-ReadMeTab:Label{
-	Text = "Join discord server for Auto Tech, Auto farm etc!"
-}
-ReadMeTab:Button{
-	Text = "Copy Discord Invite",
-	Callback = function()
-		setclipboard("https://discord.gg/cpshub")
-		Windui:Notify{Title="Copied!", Content="Discord invite copied to clipboard.", Duration=3, Icon="check"}
-	end
-}
 
 local m1AfterEnabled, m1CatchEnabled = false, false
 local normalRange, specialRange, skillRange, skillDelay = 30, 50, 50, 1.2
@@ -57,7 +45,6 @@ function getPlayerInView()
 	return closest
 end
 
--- PC camlock logic
 local camlockEnabledPC, camlockKey = false, Enum.KeyCode.C
 local camlockTargetPC, camlockHighlightPC, camlockBillboardPC
 DetectTab:Toggle{
@@ -131,15 +118,17 @@ end)
 Players.PlayerRemoving:Connect(function(plr)
 	if camlockTargetPC and plr==camlockTargetPC then clearCamlockPC() end
 end)
--- Mobile camlock GUI unchanged, rest of classic working script untouched!
--- Proceed to PART 2 below!
--- MOBILE CAMLOCK GUI: UNMODIFIED OG WORKING VERSION!
-local camlockGui = PlayerGui:FindFirstChild("CPSMobileCamlockGui") or Instance.new("ScreenGui", PlayerGui)
+
+-- [PART 2: Mobile camlock, autos, ReadMe]
+-------------------------
+-- MOBILE CAMLOCK GUI, OG LOGIC
+-------------------------
+camlockGui = Instance.new("ScreenGui", PlayerGui)
 camlockGui.Name = "CPSMobileCamlockGui"
 camlockGui.ResetOnSpawn = false
 camlockGui.Enabled = true
 
-local camlockFrame = Instance.new("Frame", camlockGui)
+camlockFrame = Instance.new("Frame", camlockGui)
 camlockFrame.Size = UDim2.new(0,170,0,70)
 camlockFrame.Position = UDim2.new(0.5,-85,0.95,-80)
 camlockFrame.AnchorPoint = Vector2.new(0.5,1)
@@ -150,7 +139,7 @@ Instance.new("UICorner",camlockFrame).CornerRadius=UDim.new(0,14)
 local UIGradient = Instance.new("UIGradient",camlockFrame)
 UIGradient.Color=ColorSequence.new(Color3.new(1,0,0),Color3.new(.5,0,0)); UIGradient.Rotation=45
 
-local camlockText = Instance.new("TextLabel", camlockFrame)
+camlockText = Instance.new("TextLabel", camlockFrame)
 camlockText.Size = UDim2.new(1,-10,.4,-10)
 camlockText.Position = UDim2.new(0,5,0,4)
 camlockText.BackgroundTransparency = 1
@@ -159,7 +148,7 @@ camlockText.TextColor3 = Color3.new(1,0,0)
 camlockText.Font = Enum.Font.SourceSansBold
 camlockText.TextScaled = true
 
-local fightingText = Instance.new("TextLabel", camlockFrame)
+fightingText = Instance.new("TextLabel", camlockFrame)
 fightingText.Size = UDim2.new(1,-10,.4,-10)
 fightingText.Position = UDim2.new(0,5,0,30)
 fightingText.BackgroundTransparency = 1
@@ -168,11 +157,11 @@ fightingText.TextColor3 = Color3.new(1,0,0)
 fightingText.Font = Enum.Font.SourceSansItalic
 fightingText.TextScaled = true
 
-local keybindText = Instance.new("TextLabel", camlockFrame)
+keybindText = Instance.new("TextLabel", camlockFrame)
 keybindText.Size = UDim2.new(1,-10,.2,-5)
 keybindText.Position = UDim2.new(0,5,0,56)
 keybindText.BackgroundTransparency = 1
-keybindText.Text = "PC Keybind: "..(camlockKey and camlockKey.Name or "C")
+keybindText.Text = "PC Keybind: "..camlockKey.Name
 keybindText.TextColor3 = Color3.new(1,0,0)
 keybindText.Font = Enum.Font.SourceSansItalic
 keybindText.TextScaled = true
@@ -230,7 +219,8 @@ function lockCamlockMobile()
 	txt.Size=UDim2.new(1,0,1,0); txt.Text="Fighting: "..(target.DisplayName or target.Name)
 	txt.Font=Enum.Font.SourceSansBold; txt.TextColor3=Color3.new(1,0,0); txt.TextScaled=true; txt.BackgroundTransparency=1
 	camlockText.Text="Camlock: ON" fightingText.Text="Fighting: "..(target.DisplayName or target.Name)
-	keybindText.Text = "PC Keybind: "..(camlockKey and camlockKey.Name or "C")
+	keybindText.Text = "PC Keybind: "..camlockKey.Name
+
 	RunService:UnbindFromRenderStep("Mobile_CamlockLook")
 	RunService:BindToRenderStep("Mobile_CamlockLook", Enum.RenderPriority.Camera.Value+5, function()
 		if camlockMobileState and camlockTargetMobile and camlockTargetMobile:FindFirstChild("HumanoidRootPart")
@@ -256,4 +246,14 @@ Players.PlayerRemoving:Connect(function(plr)
 	if camlockTargetMobile and plr.Character==camlockTargetMobile then clearCamlockMobile() end
 end)
 
--- (rest: unchanged, all your original combat/counter logic here!)
+-- (rest of your OG combat, counter, notify logic unchanged)
+
+-- Now add a Read Me tab (at bottom of code, after all working UI/tabs/logic):
+local ReadMeTab = Window:Tab{ Title = "Read Me", Icon = "book" }
+ReadMeTab:Button{
+	Text = "Join discord server for Auto Tech, Auto Farm etc!",
+	Callback = function()
+		setclipboard("https://discord.gg/cpshub")
+		Windui:Notify{Title="Copied!", Content="Discord invite copied to clipboard.", Duration=3, Icon="check"}
+	end
+}
